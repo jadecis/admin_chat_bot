@@ -21,20 +21,27 @@ async def everysub():
 
 async def delete_message():
     inf= db.get_msg()
-    result= db.get_newUsers()
     if inf:
         for i in inf:
-            if -i[2] + datetime.timestamp(datetime.now()) >= 0: 
-                await bot.delete_message(
-                    chat_id=i[1],
-                    message_id=i[0],
-                )       
+            if -i[2] + datetime.timestamp(datetime.now()) >= 0:
+                try:
+                    await bot.delete_message(
+                        chat_id=i[1],
+                        message_id=i[0],
+                    )    
+                except:
+                    continue   
                 db.del_msg(i[0])  
+    
+async def ban_user():
+    result= db.get_newUsers()
     if result:
         for i in result:
-            if i[3]+30 < datetime.timestamp(datetime.now()):
-                await bot.ban_chat_member(chat_id=i[2], user_id=i[1])
-                await bot.delete_message(chat_id=i[2], message_id=i[4])       
+            if i[3] <= datetime.timestamp(datetime.now()):
+                try: await bot.ban_chat_member(chat_id=i[2], user_id=i[1])
+                except: pass
+                try: await bot.delete_message(chat_id=i[2], message_id=i[4])       
+                except: pass
                 db.delete_newUser(i[1])
 
 async def scheduler():
@@ -42,6 +49,7 @@ async def scheduler():
     aioschedule.every().day.at("00:00").do(everyday)
     aioschedule.every().monday.at('00:01').do(everyweek)
     aioschedule.every().minute.do(delete_message)
+    aioschedule.every(30).seconds.do(ban_user)
     while True:
         await aioschedule.run_pending()
         await asyncio.sleep(1)

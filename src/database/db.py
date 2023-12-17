@@ -1,5 +1,5 @@
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta
 
 class Database():
     
@@ -10,6 +10,7 @@ class Database():
     def add_user(self, user_id, username, date_reg):
         with self.connection:
             self.cursor.execute("INSERT INTO users (user_id, username, date_reg) VALUES (?, ?, ?)", (user_id, username, date_reg,))
+            self.cursor.execute("INSERT INTO stats (user_id, username) VALUES (?, ?)", (user_id, username,))
 
     def get_user_BYusername(self, username):
         with self.connection:
@@ -145,7 +146,11 @@ class Database():
             
     def add_newUser(self, user_id, chat_id, msg_id):
         with self.connection:
-            self.cursor.execute("INSERT INTO new (user_id, chat_id, date, msg_id) VALUES (?, ?, ?, ?)", (user_id, chat_id, datetime.timestamp(datetime.now()), msg_id, ))
+            self.cursor.execute("INSERT INTO new (user_id, chat_id, date, msg_id) VALUES (?, ?, ?, ?)",
+                                 (user_id,
+                                   chat_id,
+                                     int(datetime.timestamp(datetime.now())+30),
+                                       msg_id, ))
             
     def get_newUsers(self, user_id=None):
         with self.connection:
@@ -155,4 +160,5 @@ class Database():
         
     def delete_newUser(self, user_id):
         with self.connection:
-            self.cursor.execute("DELETE FROM new WHERE user_id= ?", (user_id, ))
+            self.cursor.execute("DELETE FROM new WHERE user_id= ?", 
+                                (user_id, ))
